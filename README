@@ -1,0 +1,2856 @@
+Especificación de desarrollo — Compresor y Convertidor de Imágenes V2 practico
+1. HTML — Estructura de la aplicación
+
+El HTML será únicamente la estructura. No meteremos lógica de procesamiento allí.
+
+1.1 Encabezado
+
+Debe contener:
+
+Nombre de la aplicación.
+Descripción corta.
+Indicador de que el procesamiento es local.
+Mensaje de privacidad:
+
+🔒 Tus imágenes se procesan directamente en tu navegador. No se suben a ningún servidor.
+
+1.2 Área para cargar imágenes
+
+Debe permitir:
+
+Seleccionar archivos mediante botón.
+Arrastrar y soltar.
+Seleccionar varias imágenes.
+Mostrar cantidad de imágenes cargadas.
+
+Formatos de entrada:
+
+JPG
+JPEG
+PNG
+WebP
+
+Ejemplo:
+
+Arrastra tus imágenes aquí
+o
+Seleccionar imágenes
+
+1.3 Lista de imágenes cargadas
+
+Cada imagen tendrá una tarjeta con:
+
+Miniatura.
+Nombre.
+Formato.
+Dimensiones.
+Tamaño original.
+Botón para eliminarla.
+
+Ejemplo:
+
+┌───────────────────────────────┐
+│ [ MINIATURA ]                 │
+│ producto.jpg                  │
+│ JPG · 1200 × 1200             │
+│ 1.84 MB                       │
+│                     🗑 Eliminar│
+└───────────────────────────────┘
+2. CSS — Diseño visual
+
+El CSS será responsable únicamente de presentación.
+
+2.1 Diseño
+
+La aplicación debe ser:
+
+Moderna.
+Limpia.
+Fácil de entender.
+Responsive.
+Compatible con computador y celular.
+2.2 Colores
+
+Podemos utilizar una interfaz neutra, con un color principal para botones y estados.
+
+No necesitamos hacerla excesivamente compleja.
+
+2.3 Estados visuales
+
+Debe existir diferencia visual entre:
+
+Esperando.
+Procesando.
+Completado.
+Advertencia.
+Error.
+
+Por ejemplo:
+
+⏳ Procesando...
+✓ Completado
+⚠ Advertencia
+✕ Error
+3. JavaScript — Motor de la aplicación
+
+Aquí estará prácticamente toda la inteligencia.
+
+JavaScript manejará:
+
+Carga de archivos.
+Validaciones.
+Lectura de imágenes.
+Canvas.
+Redimensionamiento.
+Compresión.
+Conversión.
+Previsualizaciones.
+Cálculo de tamaños.
+Porcentajes.
+Descargas.
+Procesamiento múltiple.
+
+La aplicación no necesita servidor.
+
+4. Flujo general de procesamiento
+
+La lógica será:
+
+IMAGEN ORIGINAL
+       ↓
+VALIDAR ARCHIVO
+       ↓
+LEER IMAGEN
+       ↓
+DETERMINAR FORMATO DE SALIDA
+       ↓
+DETERMINAR DIMENSIONES
+       ↓
+REDIMENSIONAR SI CORRESPONDE
+       ↓
+CONVERTIR / CODIFICAR
+       ↓
+COMPROBAR TAMAÑO
+       ↓
+AJUSTAR CALIDAD SI ES NECESARIO
+       ↓
+GENERAR ARCHIVO FINAL
+       ↓
+MOSTRAR RESULTADO
+       ↓
+DESCARGAR
+
+Y esto es importante:
+
+Nunca se debe cambiar simplemente .jpg por .png.
+
+El archivo debe ser realmente convertido.
+
+5. Algoritmo de compresión
+
+Aquí está una de las partes más importantes.
+
+5.1 Objetivo
+
+Si el usuario selecciona:
+
+Máximo: 200 KB
+
+el programa intentará producir un archivo de:
+
+≤ 200 KB
+
+manteniendo la mayor calidad visual posible.
+
+5.2 Compresión inteligente
+
+Para JPG y WebP utilizaremos un sistema iterativo.
+
+Por ejemplo:
+
+Calidad inicial: 90%
+
+↓
+Generar imagen
+
+↓
+¿Pesa menos de 200 KB?
+
+Sí → terminar
+
+No → reducir calidad
+
+↓
+80%
+
+↓
+Generar
+
+↓
+¿Pesa menos de 200 KB?
+
+No → continuar
+
+Pero en lugar de bajar simplemente:
+
+90 → 80 → 70 → 60...
+
+podemos utilizar una búsqueda binaria.
+
+Ejemplo:
+
+90
+↓
+50
+↓
+70
+↓
+60
+↓
+65
+↓
+63
+
+Esto permite encontrar mucho más rápidamente la mejor calidad posible que cumpla el límite.
+
+6. Regla fundamental del tamaño
+
+La prioridad será:
+
+1. Archivo válido
+2. Formato solicitado
+3. Cumplir el tamaño máximo
+4. Máxima calidad posible
+5. Mantener dimensiones
+6. Mantener proporciones
+
+Pero hay una excepción importante.
+
+Si el usuario pide:
+
+PNG + 200 KB + 4000×4000
+
+y técnicamente no se puede llegar a 200 KB sin destruir la imagen...
+
+NO debemos destruir la calidad solamente para alcanzar 200 KB.
+
+La aplicación debe informar:
+
+⚠️ No fue posible alcanzar 200 KB manteniendo estas dimensiones y formato. Puedes reducir las dimensiones o utilizar JPG/WebP.
+
+7. Redimensionamiento
+
+Será opcional.
+
+El usuario podrá definir:
+
+Ancho máximo
+[ 1200 ] px
+Alto máximo
+[ 1200 ] px
+
+Y:
+
+☑ Mantener proporción
+
+Por defecto estará activado.
+
+Ejemplo
+
+Imagen:
+
+4000 × 3000
+
+Límite:
+
+1200 × 1200
+
+Resultado:
+
+1200 × 900
+
+Nunca:
+
+1200 × 1200
+
+porque deformaría la imagen.
+
+8. Conversión de formatos
+
+Aquí vamos a ser especialmente estrictos.
+
+La aplicación debe realizar transcodificación real.
+
+Usaremos el navegador, principalmente mediante:
+
+Canvas
+canvas.toBlob()
+8.1 Matriz de conversiones
+Original	Salida
+JPG	PNG
+JPG	WebP
+PNG	JPG
+PNG	WebP
+WebP	JPG
+WebP	PNG
+
+Todas deben producir archivos reales del formato seleccionado.
+
+9. Conversión PNG/WebP → JPG
+
+Aquí existe un problema importante:
+
+JPG no admite transparencia.
+
+Por eso, si la imagen original tiene transparencia, aparecerá una opción:
+
+Fondo para JPG
+○ Blanco
+○ Negro
+○ Personalizado
+
+Por defecto:
+
+Blanco.
+
+Ejemplo:
+
+PNG transparente
+       ↓
+       ↓
+   fondo blanco
+       ↓
+      JPG
+10. Conversión JPG → PNG
+
+Será una conversión real:
+
+JPG
+ ↓
+decodificación
+ ↓
+Canvas
+ ↓
+PNG
+
+Pero debemos dejar claro algo:
+
+convertir JPG a PNG no recupera información que el JPG ya perdió.
+
+No debemos prometer una mejora de calidad.
+
+11. PNG
+
+PNG es un caso especial.
+
+PNG utiliza compresión sin pérdida y el navegador no nos ofrece el mismo control de calidad que JPG/WebP.
+
+Por eso:
+
+PNG → PNG
+
+no siempre podrá reducirse considerablemente.
+
+Si el usuario exige:
+
+200 KB
+
+y no se puede alcanzar manteniendo las dimensiones, mostramos una advertencia.
+
+Podremos ofrecer:
+
+Reducir dimensiones
+
+o:
+
+Convertir a WebP
+
+o:
+
+Convertir a JPG
+
+12. WebP
+
+WebP será especialmente importante porque permite una buena relación:
+
+calidad ↔ tamaño
+
+Por ejemplo:
+
+JPG 800 KB
+       ↓
+WebP
+       ↓
+180 KB
+
+dependiendo naturalmente del contenido.
+
+13. Interfaz de configuración
+
+La interfaz podría quedar organizada así:
+
+┌──────────────────────────────────────┐
+│       COMPRESOR DE IMÁGENES          │
+│                                      │
+│  Arrastra tus imágenes aquí          │
+│        [ Seleccionar ]               │
+└──────────────────────────────────────┘
+
+
+CONFIGURACIÓN
+
+Formato de salida
+[ Automático ▼ ]
+
+Tamaño máximo
+[ 200 KB ▼ ]
+
+Calidad
+[ Automática ▼ ]
+
+Redimensionar
+☐ Activar
+
+Ancho máximo
+[       ] px
+
+Alto máximo
+[       ] px
+
+☑ Mantener proporción
+
+
+        [ 🚀 PROCESAR IMÁGENES ]
+14. Presets rápidos
+
+Tendremos botones para:
+
+[ 200 KB ]
+[ 500 KB ]
+[ 1 MB ]
+[ Personalizado ]
+
+Esto permite comprimir rápidamente sin configurar todo manualmente.
+
+15. Modo automático y manual
+Automático
+
+La aplicación decide la calidad necesaria para cumplir el objetivo.
+
+Manual
+
+El usuario selecciona:
+
+Calidad: 80%
+
+En este caso, el tamaño final dependerá de la imagen.
+
+Esto es importante porque calidad 80% no significa automáticamente un tamaño determinado.
+
+16. Formato automático
+
+Podemos hacer que:
+
+Si hay transparencia
+
+Preferir:
+
+WebP / PNG
+Si es una fotografía
+
+Preferir:
+
+WebP / JPG
+
+Y podemos definir WebP como formato automático recomendado para obtener archivos pequeños.
+
+Pero el usuario siempre podrá elegir manualmente.
+
+17. Resultado
+
+Después de procesar una imagen aparecerá:
+
+┌──────────────────────────────────────┐
+│ producto.jpg                         │
+│                                      │
+│ ORIGINAL          RESULTADO          │
+│                                      │
+│ 1200×1200         1200×1200          │
+│ 1.4 MB            185 KB             │
+│                                      │
+│ Reducción: 86.8%                     │
+│ Formato: JPG → WebP                  │
+│                                      │
+│       [ Descargar ]                   │
+└──────────────────────────────────────┘
+18. Comparación visual
+
+Idealmente tendremos:
+
+ORIGINAL              RESULTADO
+
+[ imagen ]            [ imagen ]
+
+Esto permitirá verificar que la compresión no haya deteriorado demasiado la imagen.
+
+19. Nombres de archivos
+
+La aplicación generará nombres automáticamente.
+
+Compresión
+producto.jpg
+↓
+producto_comprimido.jpg
+Conversión
+producto.jpg
+↓
+producto_convertido.png
+Compresión + conversión
+producto.jpg
+↓
+producto_200kb.webp
+
+También podemos hacer que el nombre refleje el formato final:
+
+producto_comprimido.webp
+20. Procesamiento múltiple
+
+Ejemplo:
+
+20 imágenes
+
+La aplicación mostrará:
+
+Procesando 7 de 20...
+
+Y una barra:
+
+████████████░░░░░░░░ 60%
+
+Cada imagen se procesa individualmente.
+
+Si una falla, no debe detener todo el lote.
+
+Por ejemplo:
+
+✓ producto1.jpg
+✓ producto2.png
+✕ producto3.jpg
+✓ producto4.webp
+21. Errores y validaciones
+
+Debemos contemplar:
+
+Archivo no válido
+
+El archivo seleccionado no es una imagen válida.
+
+Formato no soportado
+
+Este formato no es compatible.
+
+Imagen dañada
+
+No fue posible leer esta imagen.
+
+Tamaño imposible
+
+No fue posible alcanzar el tamaño solicitado manteniendo las condiciones seleccionadas.
+
+Error de conversión
+
+No fue posible convertir la imagen al formato seleccionado.
+
+Memoria
+
+Imágenes gigantes pueden consumir mucha memoria.
+
+Mostraríamos algo como:
+
+La imagen es demasiado grande para procesarla de forma segura en este dispositivo.
+
+22. Privacidad
+
+Esto es especialmente bueno para una herramienta como la que usted está pensando.
+
+La aplicación funcionará:
+
+100% en el navegador.
+
+No:
+
+sube imágenes,
+guarda imágenes en un servidor,
+necesita cuenta,
+necesita base de datos.
+
+El archivo entra:
+
+Computador/celular
+       ↓
+Navegador
+       ↓
+JavaScript + Canvas
+       ↓
+Archivo final
+23. Compatibilidad
+
+Objetivo:
+
+Chrome
+Edge
+Firefox
+Safari
+Android
+iPhone/iPad
+Windows
+macOS
+
+La interfaz debe adaptarse automáticamente.
+
+24. Estructura del proyecto
+
+Yo recomiendo inicialmente:
+
+compresor-imagenes/
+│
+├── index.html
+├── css/
+│   └── styles.css
+│
+└── js/
+    └── app.js
+
+Y posteriormente podríamos separar:
+
+js/
+├── app.js
+├── compression.js
+├── conversion.js
+├── image.js
+├── validation.js
+└── download.js
+
+Pero no empezaría con demasiados archivos. Para la primera versión funcional podemos trabajar con:
+
+index.html
+styles.css
+app.js
+
+y luego modularizar si hace falta.
+
+25. Orden real de desarrollo
+
+Este sería el orden que yo seguiría:
+
+Fase 1
+
+HTML
+
+Construimos toda la interfaz.
+
+Fase 2
+
+CSS
+
+La hacemos bonita y responsive.
+
+Fase 3
+
+JavaScript básico
+
+Carga de imágenes + lectura de información.
+
+Fase 4
+
+Canvas
+
+Mostrar y manipular las imágenes.
+
+Fase 5
+
+Redimensionamiento
+
+Mantener proporciones correctamente.
+
+Fase 6
+
+Conversión
+
+Implementar:
+
+JPG ↔ PNG
+JPG ↔ WebP
+PNG ↔ WebP
+Fase 7
+
+Compresión
+
+Implementar búsqueda de calidad.
+
+Fase 8
+
+Objetivo de tamaño
+
+Ejemplo:
+
+≤ 200 KB
+Fase 9
+
+Procesamiento múltiple
+
+Varias imágenes.
+
+Fase 10
+
+Resultados y descargas
+
+Información + descarga individual.
+
+Fase 11
+
+Validaciones
+
+Errores y casos extremos.
+
+Fase 12
+
+Optimización
+
+Memoria, velocidad y eventualmente Web Workers.
+
+26. Criterios de aceptación
+
+Antes de considerar terminada la aplicación, debería superar pruebas como estas:
+
+Prueba 1
+JPG → JPG
+objetivo 200 KB
+
+Debe generar un JPG real ≤ 200 KB cuando sea técnicamente posible.
+
+Prueba 2
+PNG → JPG
+
+Debe generar un JPG real y manejar correctamente la transparencia.
+
+Prueba 3
+JPG → PNG
+
+Debe generar un PNG real.
+
+Prueba 4
+PNG → WebP
+
+Debe generar WebP real.
+
+Prueba 5
+WebP → JPG
+
+Debe generar JPG real.
+
+Prueba 6
+
+Redimensionamiento:
+
+4000 × 3000
+→ máximo 1200 × 1200
+→ 1200 × 900
+Prueba 7
+
+20 imágenes simultáneas.
+
+Prueba 8
+
+Imagen que no puede llegar al tamaño solicitado.
+
+La aplicación debe avisar, no producir una imagen destruida.
+
+🔥 Y aquí hay una decisión que me parece muy importante
+
+Para DomiDelis, yo agregaría desde el principio un preset especial:
+
+🚀 Preset DomiDelis
+
+Por ejemplo:
+
+Formato: WebP
+Tamaño máximo: 200 KB
+Mantener proporción: Sí
+Redimensionamiento: Sí
+Calidad: Automática
+
+Así usted podría tomar una imagen de un restaurante, meterla en la herramienta, seleccionar “DomiDelis” y prácticamente darle:
+
+Procesar → Descargar.
+Compresor y Convertidor de Imágenes V2
+
+Versión: 2.0
+Tipo: Aplicación web cliente
+Tecnologías base: HTML5 + CSS3 + JavaScript
+Procesamiento: 100 % local en el navegador
+Servidor: No requerido para el procesamiento
+
+1. Objetivo general
+
+Desarrollar una aplicación web que permita al usuario:
+
+Cargar una o múltiples imágenes.
+Comprimirlas.
+Convertirlas entre formatos.
+Redimensionarlas opcionalmente.
+Establecer un tamaño máximo.
+Ajustar la calidad manualmente o automáticamente.
+Mantener las proporciones originales.
+Previsualizar original y resultado.
+Descargar individualmente los resultados.
+Procesar varias imágenes en lote.
+Obtener archivos cuyo contenido real corresponda a la extensión indicada.
+
+Los formatos principales serán:
+
+Entrada
+
+JPG
+JPEG
+PNG
+WebP
+
+Salida
+
+JPG
+PNG
+WebP
+2. Principios técnicos obligatorios
+
+Estos principios son reglas del sistema, no opciones.
+
+RNF-01 — Procesamiento local
+
+Las imágenes deberán procesarse directamente en el navegador.
+
+No se deberán enviar automáticamente a un servidor.
+
+RNF-02 — Conversión real
+
+Nunca se permitirá simplemente cambiar:
+
+imagen.jpg → imagen.png
+
+cambiando únicamente la extensión.
+
+La aplicación deberá decodificar y volver a codificar la imagen en el formato solicitado.
+
+RNF-03 — Integridad de extensión
+
+Si el archivo termina en:
+
+.webp
+
+su contenido debe ser realmente WebP.
+
+Lo mismo para JPG y PNG.
+
+RNF-04 — Proporciones
+
+Nunca se deberá deformar una imagen.
+
+RNF-05 — Calidad
+
+La aplicación intentará conseguir el menor tamaño posible sin degradar innecesariamente la calidad.
+
+RNF-06 — Transparencia
+
+Cuando el formato de salida no admita transparencia, el sistema deberá advertirlo y permitir seleccionar un fondo.
+
+RNF-07 — Errores controlados
+
+Un error en una imagen no deberá detener obligatoriamente todo un lote.
+
+3. Requisitos funcionales
+
+Los requisitos funcionales serán identificados como RF-XX.
+
+RF-01 — Seleccionar imágenes
+
+Debe existir un botón:
+
+Seleccionar imágenes
+
+Al pulsarlo deberá abrirse el selector de archivos del sistema.
+
+Debe aceptar:
+
+.jpg
+.jpeg
+.png
+.webp
+
+También deberá permitir seleccionar múltiples archivos.
+
+RF-02 — Arrastrar y soltar
+
+Debe existir una zona:
+
+Arrastra tus imágenes aquí
+
+El usuario podrá arrastrar una o varias imágenes.
+
+Al pasar archivos sobre la zona:
+
+debe cambiar visualmente,
+indicar que puede soltarlos,
+aceptar los archivos al soltarlos.
+RF-03 — Validar archivos
+
+Cada archivo deberá comprobar:
+
+Que sea realmente una imagen.
+Que pueda ser leído.
+Que tenga un formato compatible.
+Que el navegador pueda procesarlo.
+
+No se debe confiar únicamente en la extensión del archivo.
+
+4. Tarjeta de cada imagen
+
+Después de cargar una imagen deberá aparecer una tarjeta.
+
+Debe mostrar:
+
+┌──────────────────────────────┐
+│          MINIATURA           │
+│                              │
+│ producto.jpg                 │
+│ JPG                          │
+│ 1200 × 1200 px               │
+│ 1.42 MB                      │
+│                              │
+│          [Eliminar]          │
+└──────────────────────────────┘
+Información obligatoria
+Miniatura.
+Nombre.
+Formato.
+Ancho.
+Alto.
+Tamaño.
+Estado.
+5. RF-04 — Eliminar imagen
+
+Cada tarjeta tendrá:
+
+🗑 Eliminar
+
+Debe eliminar únicamente esa imagen de la lista.
+
+No debe borrar archivos originales del computador.
+
+6. RF-05 — Botón eliminar todas
+
+Debe existir:
+
+Limpiar todo
+
+Al utilizarlo:
+
+elimina las imágenes cargadas de la interfaz,
+limpia resultados,
+libera referencias temporales,
+vuelve al estado inicial.
+
+Podría solicitar confirmación si hay muchas imágenes procesadas.
+
+7. Configuración de salida
+
+La aplicación tendrá un panel:
+
+Configuración
+8. RF-06 — Formato de salida
+
+Campo:
+
+Formato de salida
+
+Opciones:
+
+Automático
+JPG
+PNG
+WebP
+Automático
+
+El sistema seleccionará un formato adecuado según la configuración.
+
+Recomendación inicial:
+
+Fotografías → WebP
+Imágenes con transparencia → WebP
+Si se requiere compatibilidad específica → JPG/PNG según selección manual.
+9. RF-07 — Tamaño máximo
+
+Campo:
+
+Tamaño máximo
+
+Opciones:
+
+Sin límite
+50 KB
+100 KB
+150 KB
+200 KB
+300 KB
+500 KB
+1 MB
+Personalizado
+
+Si se selecciona:
+
+Personalizado
+
+aparecerá:
+
+[ ______ ] [KB ▼]
+
+También podría permitirse MB.
+
+10. RF-08 — Calidad
+
+Campo:
+
+Calidad
+
+Opciones:
+
+Automática
+Manual
+
+Si selecciona manual:
+
+Calidad: 80 %
+[────────●────]
+
+Rango:
+
+10 % → 100 %
+11. RF-09 — Redimensionamiento
+
+Interruptor:
+
+Redimensionar imagen
+
+Por defecto:
+
+Desactivado.
+
+Cuando se active aparecerán:
+
+Ancho máximo
+[ ______ ] px
+
+Alto máximo
+[ ______ ] px
+
+Y:
+
+☑ Mantener proporción
+12. RF-10 — Mantener proporción
+
+Debe estar activado por defecto.
+
+Si la imagen es:
+
+4000 × 3000
+
+y se establece:
+
+Máximo 1200 × 1200
+
+el resultado deberá ser:
+
+1200 × 900
+
+Nunca:
+
+1200 × 1200
+13. RF-11 — Fondo para conversión a JPG
+
+Cuando el formato de salida sea JPG y la imagen tenga transparencia, debe aparecer:
+
+Fondo para JPG
+
+Opciones:
+
+○ Blanco
+○ Negro
+○ Personalizado
+
+Para personalizado:
+
+[ selector de color ]
+
+Valor predeterminado:
+
+Blanco.
+
+14. RF-12 — Presets rápidos
+
+Deberán existir accesos rápidos:
+
+[ 200 KB ]
+[ 500 KB ]
+[ 1 MB ]
+
+Al seleccionar uno, el sistema configurará automáticamente el límite correspondiente.
+
+15. RF-13 — Preset DomiDelis
+
+Debe existir un preset especial:
+
+🚀 DomiDelis
+
+Configuración inicial propuesta:
+
+Formato: WebP
+Tamaño máximo: 200 KB
+Calidad: Automática
+Mantener proporción: Sí
+
+La configuración podrá modificarse después manualmente.
+
+16. RF-14 — Procesar imágenes
+
+Botón principal:
+
+🚀 Procesar imágenes
+
+Al pulsarlo deberá:
+
+Validar que existan imágenes.
+Validar configuración.
+Preparar imágenes.
+Procesar una por una.
+Mostrar progreso.
+Generar resultados.
+Mostrar estadísticas.
+Habilitar descargas.
+17. Estados de procesamiento
+
+Cada imagen deberá tener uno de estos estados:
+
+Pendiente
+Preparando
+Procesando
+Comprimiendo
+Convirtiendo
+Completada
+Error
+18. RF-15 — Barra de progreso
+
+Debe mostrar:
+
+Procesando 7 de 20
+████████████░░░░░░░░ 60 %
+
+También podrá mostrar:
+
+Completadas: 7
+Errores: 0
+Pendientes: 13
+19. RF-16 — Resultado individual
+
+Cada resultado debe mostrar:
+
+Original
+1.42 MB
+1200 × 1200
+JPG
+
+↓
+
+Resultado
+184 KB
+1200 × 1200
+WebP
+
+Reducción: 87.0 %
+
+Y:
+
+Descargar
+
+20. RF-17 — Comparación visual
+
+Cuando sea posible deberá mostrar:
+
+ORIGINAL             RESULTADO
+
+[ imagen ]           [ imagen ]
+
+Esto permitirá comprobar visualmente la calidad.
+
+21. RF-18 — Cálculo de reducción
+
+Debe calcular:
+
+reducción % =
+(original - final) / original × 100
+
+Ejemplo:
+
+Original: 1.000 KB
+Final:      200 KB
+
+Reducción: 80 %
+22. RF-19 — Descarga individual
+
+Cada resultado tendrá:
+
+Descargar
+
+El navegador descargará el archivo generado.
+
+23. RF-20 — Descargar todos
+
+Cuando existan varios resultados:
+
+Descargar todos
+
+La aplicación deberá crear un ZIP en el navegador.
+
+Importante: esta función debe ser completamente cliente si queremos mantener la filosofía de procesamiento local.
+
+24. RF-21 — Nombres de archivos
+
+Ejemplos:
+
+producto.jpg
+↓
+producto_comprimido.jpg
+
+Conversión:
+
+producto.jpg
+↓
+producto_convertido.webp
+
+Compresión con objetivo:
+
+producto.jpg
+↓
+producto_200kb.webp
+25. RF-22 — Reprocesar
+
+El usuario podrá cambiar:
+
+200 KB
+↓
+500 KB
+
+y volver a procesar sin tener que cargar nuevamente las imágenes originales.
+
+Esto es importante.
+
+La aplicación debe conservar temporalmente los archivos originales mientras dure la sesión.
+
+26. RF-23 — No modificar originales
+
+Los archivos originales nunca serán sobrescritos.
+
+El procesamiento siempre generará un nuevo archivo.
+
+27. Algoritmo de compresión
+
+Esta será una parte central de JavaScript.
+
+RF-24 — Compresión automática
+
+Para JPG y WebP:
+
+Generar imagen.
+Medir tamaño.
+Comparar con objetivo.
+Ajustar calidad.
+Volver a generar.
+Repetir.
+Detener cuando alcance el objetivo o cuando no sea técnicamente viable.
+28. Búsqueda binaria de calidad
+
+En lugar de probar:
+
+90
+89
+88
+87
+...
+
+utilizaremos búsqueda binaria:
+
+90
+50
+70
+60
+65
+63
+...
+
+Esto reduce considerablemente la cantidad de codificaciones necesarias.
+
+29. Límite de iteraciones
+
+Debe existir un límite para evitar procesos infinitos.
+
+Por ejemplo:
+
+máximo 12 iteraciones
+
+Si no se consigue el objetivo:
+
+No fue posible alcanzar el tamaño solicitado con la configuración actual.
+
+30. PNG
+
+Para PNG:
+
+no se debe intentar tratar quality como si fuera JPG;
+se deberá generar PNG real;
+si el tamaño objetivo no es posible, se informará al usuario.
+
+Opciones posteriores:
+
+Reducir dimensiones
+
+o
+
+Cambiar a WebP/JPG.
+
+31. Conversión real
+
+La función de conversión deberá trabajar conceptualmente así:
+
+Archivo original
+       ↓
+Decodificación
+       ↓
+Bitmap / Canvas
+       ↓
+Aplicar fondo si corresponde
+       ↓
+Redimensionar si corresponde
+       ↓
+Codificación
+       ↓
+Blob
+       ↓
+Archivo final
+32. Funciones JavaScript
+
+Ahora viene una parte especialmente importante: la estructura exacta del código.
+
+Propongo estas funciones principales.
+
+handleFiles(files)
+
+Responsabilidad:
+
+recibir archivos,
+validarlos,
+incorporarlos a la lista.
+validateFile(file)
+
+Comprueba:
+
+tipo,
+tamaño,
+extensión,
+posibilidad de lectura.
+
+Devuelve:
+
+válido / inválido
+loadImage(file)
+
+Carga el archivo y obtiene:
+
+imagen,
+ancho,
+alto,
+proporción.
+getImageMetadata(file)
+
+Obtiene:
+
+nombre,
+tamaño,
+formato,
+dimensiones.
+calculateDimensions(width, height, maxWidth, maxHeight)
+
+Calcula las nuevas dimensiones manteniendo proporción.
+
+resizeCanvas(canvas, dimensions)
+
+Genera el Canvas con las dimensiones calculadas.
+
+getOutputFormat(file, settings)
+
+Determina:
+
+JPG
+PNG
+WebP
+
+según configuración.
+
+hasTransparency(image)
+
+Determina si la imagen contiene transparencia cuando sea necesario.
+
+createCanvasFromImage(image, options)
+
+Prepara la imagen para procesamiento.
+
+applyBackground(canvas, color)
+
+Coloca un fondo cuando sea necesario para JPG.
+
+encodeImage(canvas, format, quality)
+
+Genera el Blob final:
+
+image/jpeg
+image/png
+image/webp
+compressToTarget(canvas, settings)
+
+Es la función principal del algoritmo de compresión.
+
+Recibirá:
+
+canvas
+tamaño objetivo
+formato
+calidad mínima
+calidad máxima
+
+y devolverá el mejor resultado encontrado.
+
+findBestQuality(canvas, targetSize, format)
+
+Implementará la búsqueda binaria.
+
+processImage(file, settings)
+
+Será el coordinador de todo el proceso de una imagen.
+
+Conceptualmente:
+
+validar
+↓
+cargar
+↓
+dimensiones
+↓
+canvas
+↓
+redimensionar
+↓
+formato
+↓
+compresión
+↓
+resultado
+processBatch(files, settings)
+
+Procesará múltiples imágenes.
+
+Controlará:
+
+1 de 20
+2 de 20
+3 de 20
+...
+calculateReduction(originalSize, finalSize)
+
+Calcula el porcentaje de reducción.
+
+generateOutputName(file, settings)
+
+Genera el nombre final.
+
+downloadBlob(blob, filename)
+
+Descarga un resultado individual.
+
+downloadAllAsZip(results)
+
+Genera el ZIP con todos los resultados.
+
+showResult(result)
+
+Actualiza la interfaz con:
+
+tamaño,
+dimensiones,
+formato,
+reducción,
+miniatura,
+botón de descarga.
+showError(message)
+
+Muestra errores de manera uniforme.
+
+updateProgress(current, total)
+
+Actualiza la barra de progreso.
+
+resetApplication()
+
+Limpia:
+
+archivos,
+resultados,
+progreso,
+estados.
+33. Arquitectura JavaScript
+
+Para evitar terminar con un app.js gigante y difícil de mantener, recomiendo esta organización definitiva:
+
+js/
+│
+├── app.js
+│
+├── state.js
+│
+├── validation.js
+│
+├── image-loader.js
+│
+├── image-processing.js
+│
+├── compression.js
+│
+├── conversion.js
+│
+├── batch.js
+│
+├── download.js
+│
+└── ui.js
+app.js
+
+Punto de entrada.
+
+state.js
+
+Estado general de la aplicación.
+
+validation.js
+
+Validaciones.
+
+image-loader.js
+
+Carga de imágenes.
+
+image-processing.js
+
+Canvas y redimensionamiento.
+
+compression.js
+
+Algoritmos de compresión.
+
+conversion.js
+
+Conversión de formatos.
+
+batch.js
+
+Procesamiento múltiple.
+
+download.js
+
+Descargas y ZIP.
+
+ui.js
+
+Interfaz y estados visuales.
+
+34. Estado global
+
+El sistema debe mantener un estado parecido a:
+
+images[]
+settings{}
+results[]
+processingState
+currentIndex
+errors[]
+
+Pero evitando variables globales innecesarias.
+
+35. Requisitos no funcionales
+RNF-01 — Rendimiento
+
+La aplicación debe intentar no bloquear la interfaz durante procesos largos.
+
+Para lotes grandes se podrá implementar posteriormente:
+
+Web Workers.
+
+RNF-02 — Memoria
+
+Debe liberar:
+
+Object URLs,
+Canvas temporales,
+referencias innecesarias,
+resultados temporales.
+
+Esto será importante cuando se procesen imágenes grandes.
+
+RNF-03 — Responsive
+
+Debe funcionar correctamente en:
+
+PC.
+portátil.
+tablet.
+teléfono.
+RNF-04 — Accesibilidad básica
+
+Botones y campos deben tener:
+
+etiquetas claras,
+aria-label cuando sea necesario,
+foco visible,
+navegación razonable mediante teclado.
+RNF-05 — Compatibilidad
+
+Objetivo:
+
+Chrome.
+Edge.
+Firefox.
+Safari.
+Android.
+iOS/iPadOS.
+36. Validaciones obligatorias
+
+Antes de procesar:
+
+V-01
+
+¿Hay imágenes?
+
+Si no:
+
+Selecciona al menos una imagen.
+
+V-02
+
+¿El formato es compatible?
+
+Si no:
+
+Formato no compatible.
+
+V-03
+
+¿La imagen puede abrirse?
+
+Si no:
+
+No fue posible leer la imagen.
+
+V-04
+
+¿El tamaño personalizado es válido?
+
+Si no:
+
+Introduce un tamaño válido.
+
+V-05
+
+¿Las dimensiones son válidas?
+
+No aceptar:
+
+0
+-100
+texto
+V-06
+
+¿Existe configuración incompatible?
+
+Ejemplo:
+
+JPG
++
+transparencia
+
+→ solicitar fondo.
+
+37. Manejo de imposibilidad técnica
+
+Esto es fundamental.
+
+La aplicación no debe mentir al usuario.
+
+Si pide:
+
+PNG
+200 KB
+4000 × 4000
+
+y no se puede:
+
+No debemos generar una imagen horrible simplemente para decir:
+
+✓ 200 KB
+
+En cambio:
+
+⚠️ No fue posible alcanzar 200 KB manteniendo el formato y dimensiones seleccionados.
+
+Y ofrecer:
+
+[ Reducir dimensiones ]
+[ Cambiar a WebP ]
+[ Mantener resultado actual ]
+38. Prioridad definitiva del algoritmo
+
+Cuando haya conflicto entre requisitos, la prioridad será:
+
+1. Archivo válido
+
+↓
+
+2. Formato de salida correcto
+
+↓
+
+3. No deformar la imagen
+
+↓
+
+4. Cumplir tamaño máximo cuando sea técnicamente posible
+
+↓
+
+5. Conservar las dimensiones cuando sea posible
+
+↓
+
+6. Maximizar calidad visual
+
+↓
+
+7. Optimizar rendimiento
+
+Esta prioridad evita que el programa tome decisiones absurdas para conseguir simplemente un número de KB.
+
+39. Seguridad y privacidad
+
+No almacenar:
+
+imágenes,
+nombres permanentemente,
+información personal.
+
+Los datos existirán únicamente mientras la página esté abierta, salvo que posteriormente decidamos incorporar almacenamiento local explícitamente.
+
+40. Criterios para considerar terminada la V2
+
+La aplicación será considerada funcionalmente terminada cuando pueda:
+
+ Cargar JPG.
+ Cargar PNG.
+ Cargar WebP.
+ Cargar múltiples imágenes.
+ Arrastrar y soltar.
+ Mostrar información.
+ Comprimir.
+ Convertir.
+ Redimensionar.
+ Mantener proporción.
+ Trabajar con transparencia.
+ Elegir fondo para JPG.
+ Intentar alcanzar tamaño máximo.
+ Utilizar búsqueda de calidad.
+ Mostrar porcentaje de reducción.
+ Mostrar comparación.
+ Descargar individualmente.
+ Descargar lote.
+ Mostrar errores.
+ Procesar todo localmente.
+ Generar archivos cuyo contenido corresponda al formato indicado.
+41. Arquitectura final resumida
+
+La aplicación quedaría conceptualmente así:
+
+                    ┌──────────────────────┐
+                    │       HTML           │
+                    │ Estructura / campos  │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │        CSS           │
+                    │ Diseño / responsive  │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │     JAVASCRIPT       │
+                    │ Control de aplicación│
+                    └──────────┬───────────┘
+                               │
+          ┌────────────────────┼────────────────────┐
+          │                    │                    │
+          ▼                    ▼                    ▼
+    VALIDACIÓN            PROCESAMIENTO        CONVERSIÓN
+          │                    │                    │
+          │              Canvas / Resize      JPG/PNG/WebP
+          │                    │                    │
+          └────────────────────┼────────────────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │    COMPRESIÓN        │
+                    │ Calidad / tamaño     │
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │      RESULTADO       │
+                    │ Preview / estadísticas│
+                    └──────────┬───────────┘
+                               │
+                    ┌──────────▼───────────┐
+                    │      DESCARGA        │
+                    │ Individual / ZIP     │
+                    └──────────────────────┘
+
+                    Especificación de funciones — V2
+1. Estructura general
+
+Vamos a trabajar inicialmente con:
+
+index.html
+styles.css
+app.js
+
+Y dentro de app.js mantendremos las funciones agrupadas por responsabilidad.
+
+La evolución será:
+
+ETAPA 1
+Carga + interfaz + información
+        ↓
+ETAPA 2
+Conversión de formatos
+        ↓
+ETAPA 3
+Compresión inteligente
+        ↓
+ETAPA 4
+Redimensionamiento + procesamiento múltiple
+        ↓
+ETAPA 5
+Descargas + ZIP + optimización
+
+No se implementará todo de una sola vez.
+
+2. index.html
+
+El HTML será el esqueleto completo de la aplicación.
+
+No tendrá lógica de compresión ni conversión.
+
+2.1 Encabezado
+
+Elementos:
+
+#appHeader
+#appTitle
+#appDescription
+#privacyNotice
+
+Contenido conceptual:
+
+Compresor y Convertidor de Imágenes
+Comprime, convierte y redimensiona tus imágenes.
+🔒 Procesamiento local en tu navegador.
+3. Área de carga
+
+Elementos:
+
+#uploadSection
+#dropZone
+#fileInput
+#selectFilesButton
+#dropZoneMessage
+#fileInput
+
+Será:
+
+type="file"
+multiple
+accept="image/jpeg,image/png,image/webp"
+#selectFilesButton
+
+Botón:
+
+Seleccionar imágenes
+
+#dropZone
+
+Zona para:
+
+Arrastra tus imágenes aquí
+
+4. Contador de imágenes
+
+Elemento:
+
+#imageCounter
+
+Ejemplo:
+
+0 imágenes seleccionadas
+
+Después:
+
+7 imágenes seleccionadas
+5. Lista de imágenes
+
+Contenedor:
+
+#imageList
+
+Aquí JavaScript generará dinámicamente las tarjetas.
+
+Cada tarjeta tendrá:
+
+.image-card
+.image-preview
+.image-info
+.image-name
+.image-format
+.image-dimensions
+.image-size
+.image-status
+.remove-image-button
+6. Panel de configuración
+
+Contenedor:
+
+#settingsPanel
+
+Dentro estarán todos los controles que ya definimos.
+
+6.1 Formato
+#outputFormat
+
+Opciones:
+
+auto
+jpeg
+png
+webp
+6.2 Tamaño máximo
+#targetSize
+
+Opciones:
+
+none
+50KB
+100KB
+150KB
+200KB
+300KB
+500KB
+1MB
+custom
+6.3 Tamaño personalizado
+#customSizeInput
+#customSizeUnit
+7. Calidad
+#qualityMode
+
+Opciones:
+
+auto
+manual
+
+Control manual:
+
+#qualityRange
+#qualityValue
+
+Ejemplo:
+
+Calidad: 80 %
+8. Redimensionamiento
+
+Interruptor:
+
+#resizeEnabled
+
+Campos:
+
+#maxWidth
+#maxHeight
+#keepAspectRatio
+9. Fondo para JPG
+
+Contenedor:
+
+#jpgBackgroundSection
+
+Controles:
+
+#jpgBackgroundMode
+#jpgBackgroundColor
+
+Opciones:
+
+white
+black
+custom
+
+Este bloque permanecerá oculto hasta que sea necesario.
+
+10. Presets
+
+Contenedor:
+
+#presets
+
+Botones:
+
+#preset200KB
+#preset500KB
+#preset1MB
+#presetDomiDelis
+11. Botones principales
+#processButton
+#clearAllButton
+
+Principal:
+
+🚀 Procesar imágenes
+
+Secundario:
+
+Limpiar todo
+
+12. Progreso
+
+Contenedor:
+
+#progressSection
+
+Elementos:
+
+#progressText
+#progressBar
+#progressPercentage
+#completedCount
+#errorCount
+
+Ejemplo:
+
+Procesando 7 de 20
+
+████████████░░░░░░░░
+
+60 %
+
+Completadas: 7
+Errores: 0
+13. Resultados
+
+Contenedor:
+
+#resultsSection
+#resultsList
+
+Cada resultado tendrá:
+
+.result-card
+.original-preview
+.output-preview
+.original-info
+.output-info
+.reduction-info
+.download-button
+14. Descargar todos
+
+Botón:
+
+#downloadAllButton
+
+Texto:
+
+Descargar todos
+
+Inicialmente estará desactivado.
+
+Se habilita cuando existan resultados.
+
+15. Mensajes
+
+Contenedores:
+
+#messageArea
+#errorArea
+#warningArea
+
+Así no tendremos mensajes dispersos por toda la aplicación.
+
+16. styles.css
+
+Aquí no tendremos funciones.
+
+Tendremos grupos de estilos.
+
+16.1 Base
+body
+*
+button
+input
+select
+16.2 Layout
+.app
+.header
+.main
+.section
+.container
+16.3 Carga
+.upload-section
+.drop-zone
+.drop-zone.drag-over
+.file-input
+16.4 Tarjetas
+.image-card
+.image-preview
+.image-info
+.image-status
+16.5 Configuración
+.settings-panel
+.setting-group
+.setting-row
+16.6 Botones
+.primary-button
+.secondary-button
+.danger-button
+.download-button
+.preset-button
+16.7 Estados
+
+Muy importante:
+
+.status-pending
+.status-processing
+.status-compressing
+.status-converting
+.status-completed
+.status-error
+16.8 Progreso
+.progress-container
+.progress-bar
+.progress-fill
+16.9 Resultados
+.results-section
+.result-card
+.comparison
+.original-result
+.reduction-badge
+16.10 Responsive
+
+Media queries para:
+
+desktop
+tablet
+mobile
+17. app.js
+
+Aquí sí estará el motor completo.
+
+Y aquí es donde quiero que dejemos una arquitectura clara desde el principio.
+
+ETAPA 1
+Carga + interfaz + información de imágenes
+
+En esta etapa NO comprimimos y NO convertimos todavía.
+
+Primero hacemos que el sistema pueda cargar correctamente las imágenes y conocerlas.
+
+17.1 Estado principal
+
+Variables/estructuras:
+
+images
+selectedFiles
+settings
+results
+processingState
+
+Pero recomiendo que el estado principal sea un objeto:
+
+appState
+
+Contendrá:
+
+appState.images
+appState.settings
+appState.results
+appState.processing
+18. Funciones de inicialización
+initApp()
+
+Responsabilidad:
+
+preparar la aplicación;
+conectar eventos;
+establecer valores iniciales;
+actualizar interfaz.
+
+Será la primera función ejecutada cuando cargue la página.
+
+initializeSettings()
+
+Establece:
+
+formato = automático
+tamaño = sin límite
+calidad = automática
+redimensionamiento = desactivado
+mantener proporción = activado
+bindEvents()
+
+Conecta todos los eventos:
+
+click
+change
+dragover
+dragleave
+drop
+19. Funciones de carga
+handleFileSelection(event)
+
+Se ejecuta cuando el usuario utiliza:
+
+Seleccionar imágenes
+
+Obtiene:
+
+event.target.files
+
+y los envía al sistema de validación.
+
+handleDrop(event)
+
+Se ejecuta cuando se arrastran archivos a la zona.
+
+handleFiles(files)
+
+Será la función central para recibir archivos.
+
+Tanto:
+
+selección
+
+como:
+
+drag & drop
+
+terminarán aquí.
+
+Eso evita duplicar lógica.
+
+20. Validación
+validateFile(file)
+
+Comprueba:
+
+tipo MIME;
+extensión;
+tamaño;
+posibilidad de lectura.
+validateImageFile(file)
+
+Comprueba específicamente si el navegador puede abrirlo como imagen.
+
+validateSupportedFormat(file)
+
+Determina:
+
+JPG
+PNG
+WebP
+21. Lectura de imagen
+loadImage(file)
+
+Carga la imagen.
+
+Obtendrá:
+
+width
+height
+aspectRatio
+createImageObject(file)
+
+Creará la estructura interna de una imagen.
+
+Por ejemplo conceptualmente:
+
+id
+file
+name
+format
+size
+width
+height
+aspectRatio
+previewUrl
+status
+22. Miniaturas
+createPreviewUrl(file)
+
+Genera la URL temporal para mostrar la miniatura.
+
+revokePreviewUrl(url)
+
+Libera esa URL cuando ya no sea necesaria.
+
+Esto será importante para no consumir memoria innecesariamente.
+
+23. Interfaz de imágenes
+renderImageList()
+
+Dibuja todas las tarjetas.
+
+renderImageCard(image)
+
+Construye visualmente una tarjeta individual.
+
+updateImageCounter()
+
+Actualiza:
+
+1 imagen
+7 imágenes
+20 imágenes
+removeImage(imageId)
+
+Elimina una imagen de la lista.
+
+clearAllImages()
+
+Elimina todas.
+
+24. Información de imagen
+getImageMetadata(file)
+
+Obtendrá:
+
+nombre
+formato
+tamaño
+ancho
+alto
+formatFileSize(bytes)
+
+Convierte:
+
+1024
+
+en:
+
+1 KB
+
+y:
+
+1048576
+
+en:
+
+1 MB
+formatImageFormat(file)
+
+Normaliza:
+
+image/jpeg
+.jpg
+.jpeg
+
+como:
+
+JPG
+25. ETAPA 1 — prueba
+
+Aquí debemos detenernos.
+
+Antes de continuar, debemos comprobar:
+
+✓ seleccionar
+✓ arrastrar
+✓ múltiples imágenes
+✓ miniatura
+✓ nombre
+✓ formato
+✓ dimensiones
+✓ tamaño
+✓ eliminar
+✓ limpiar
+✓ contador
+
+No avanzamos a conversión hasta que todo esto funcione.
+
+ETAPA 2
+Conversión de formatos
+
+Ahora agregamos la segunda capa.
+
+26. Canvas
+createCanvas(width, height)
+
+Crea el Canvas de procesamiento.
+
+drawImageToCanvas(image, canvas, dimensions)
+
+Dibuja la imagen manteniendo las dimensiones calculadas.
+
+27. Dimensiones
+calculateOutputDimensions(width, height, settings)
+
+Determina:
+
+ancho final;
+alto final;
+proporción.
+calculateAspectRatioDimensions(...)
+
+Realiza el cálculo manteniendo proporción.
+
+28. Formato de salida
+getOutputFormat(image, settings)
+
+Determina si el resultado será:
+
+JPEG
+PNG
+WebP
+29. Conversión
+convertImage(image, settings)
+
+Será la función principal de conversión.
+
+Flujo:
+
+imagen
+ ↓
+canvas
+ ↓
+formato elegido
+ ↓
+Blob
+encodeCanvas(canvas, format, quality)
+
+Codifica:
+
+JPEG
+PNG
+WebP
+
+utilizando el formato real.
+
+30. Transparencia
+detectTransparency(image)
+
+Determina si es necesario considerar transparencia.
+
+applyJpgBackground(canvas, color)
+
+Si el destino es JPG:
+
+transparencia
+↓
+fondo blanco/negro/personalizado
+↓
+JPG
+getBackgroundColor(settings)
+
+Determina el color elegido.
+
+31. Conversión específica
+
+Aunque todas pueden pasar por convertImage(), internamente podremos identificar:
+
+convertJpgToPng()
+convertJpgToWebp()
+
+convertPngToJpg()
+convertPngToWebp()
+
+convertWebpToJpg()
+convertWebpToPng()
+
+Estas funciones no necesariamente tendrán que repetir código.
+
+Pueden utilizar:
+
+convertImage()
+
+como motor común.
+
+Esto nos permite tener funciones claras sin duplicar lógica.
+
+32. Verificación del resultado
+verifyOutputBlob(blob, expectedFormat)
+
+Comprueba que el resultado generado sea coherente con el formato solicitado.
+
+Esta función es especialmente importante por la regla:
+
+Nunca entregar una extensión que no corresponda al contenido real.
+
+33. ETAPA 2 — prueba
+
+Aquí probaremos todas las combinaciones:
+
+JPG → JPG
+JPG → PNG
+JPG → WebP
+
+PNG → JPG
+PNG → PNG
+PNG → WebP
+
+WebP → JPG
+WebP → PNG
+WebP → WebP
+
+Y específicamente:
+
+PNG transparente → JPG
+
+para verificar el fondo.
+
+ETAPA 3
+Algoritmo inteligente de compresión
+
+Aquí entra la parte más delicada.
+
+34. Función principal
+compressImage(image, settings)
+
+Será el coordinador.
+
+Determinará:
+
+formato;
+tamaño objetivo;
+calidad;
+dimensiones;
+algoritmo necesario.
+35. Codificación inicial
+encodeAtQuality(canvas, format, quality)
+
+Genera un Blob con una calidad determinada.
+
+36. Medición
+getBlobSize(blob)
+
+Devuelve el tamaño en bytes.
+
+isWithinTargetSize(blob, targetBytes)
+
+Devuelve:
+
+true
+
+ou:
+
+false
+37. Búsqueda de calidad
+findBestQuality(canvas, format, targetBytes)
+
+Implementará la búsqueda binaria.
+
+Conceptualmente:
+
+calidad máxima
+calidad mínima
+       ↓
+punto medio
+       ↓
+generar
+       ↓
+medir
+       ↓
+¿cumple?
+       ↓
+ajustar rango
+       ↓
+repetir
+38. Compresión completa
+compressToTarget(canvas, settings)
+
+Será la función que decidirá:
+
+¿se puede alcanzar?
+¿qué calidad usar?
+¿cuántas iteraciones?
+¿cuál fue el mejor resultado?
+39. Mejor resultado
+selectBestResult(results)
+
+Si tenemos varias pruebas:
+
+90%
+80%
+70%
+65%
+63%
+
+seleccionará la mejor que cumpla el objetivo.
+
+40. PNG y tamaño imposible
+handlePngTargetSize(canvas, settings)
+
+Para PNG no utilizaremos el mismo algoritmo de calidad de JPG/WebP.
+
+Si no alcanza el objetivo:
+
+mostrar advertencia
+
+y eventualmente ofrecer:
+
+reducir dimensiones
+
+o:
+
+cambiar formato
+41. Redimensionamiento
+
+Aunque la interfaz de redimensionamiento ya existirá desde el principio, su procesamiento real puede integrarse en esta etapa.
+
+resizeImage(canvas, dimensions)
+
+Realiza el redimensionamiento.
+
+shouldResize(image, settings)
+
+Determina si realmente hace falta.
+
+42. Función maestra
+
+Finalmente tendremos:
+
+processImage(image, settings)
+
+Esta será probablemente la función más importante de toda la aplicación.
+
+Su flujo será:
+
+processImage()
+      │
+      ├── validar
+      │
+      ├── cargar
+      │
+      ├── obtener dimensiones
+      │
+      ├── determinar formato
+      │
+      ├── crear Canvas
+      │
+      ├── redimensionar
+      │
+      ├── aplicar fondo si corresponde
+      │
+      ├── convertir
+      │
+      ├── comprimir
+      │
+      ├── verificar tamaño
+      │
+      └── generar resultado
+43. Procesamiento múltiple
+
+Después:
+
+processBatch(images, settings)
+
+Controlará todas las imágenes.
+
+Utilizará:
+
+updateProgress(current, total)
+
+y:
+
+updateImageStatus(imageId, status)
+44. Resultados
+createResultObject(...)
+
+Generará:
+
+originalName
+originalSize
+originalFormat
+originalWidth
+originalHeight
+
+outputName
+outputSize
+outputFormat
+outputWidth
+outputHeight
+
+reductionPercentage
+blob
+previewUrl
+status
+renderResult(result)
+
+Muestra el resultado.
+
+renderResults()
+
+Muestra todos.
+
+45. Descargas
+generateOutputFilename(image, settings)
+
+Determina el nombre.
+
+downloadResult(result)
+
+Descarga uno.
+
+downloadAllResults()
+
+Descarga todos.
+
+createZip(results)
+
+Generará el ZIP.
+
+Esta última función puede utilizar una biblioteca externa especializada o, si queremos que el proyecto sea completamente autónomo, implementar posteriormente nuestro propio generador ZIP.
+
+Eso lo decidiremos antes de programar la descarga múltiple.
+
+46. Interfaz y JavaScript
+
+Finalmente, las funciones que conectan el motor con la interfaz serán:
+
+showMessage()
+showError()
+showWarning()
+showSuccess()
+
+setProcessingState()
+setButtonState()
+
+showLoading()
+hideLoading()
+
+updateProgress()
+updateImageStatus()
+
+toggleElement()
+updateSettingsUI()
+updateJpgBackgroundUI()
+updateCustomSizeUI()
+47. Mapa definitivo
+
+Así queda la relación:
+
+┌──────────────────────────────────────┐
+│             index.html               │
+│                                      │
+│ Estructura de botones, campos,       │
+│ contenedores, listas y resultados    │
+└──────────────────┬───────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│             styles.css               │
+│                                      │
+│ Diseño, estados, responsive,         │
+│ tarjetas, botones y progreso         │
+└──────────────────┬───────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│               app.js                 │
+│                                      │
+│ Estado                               │
+│ Inicialización                       │
+│ Carga                                │
+│ Validación                           │
+│ Información                          │
+│ Canvas                               │
+│ Conversión                           │
+│ Compresión                           │
+│ Redimensionamiento                   │
+│ Procesamiento múltiple               │
+│ Resultados                           │
+│ Descargas                            │
+└──────────────────────────────────────┘
+Y el orden de construcción queda definitivamente así:
+
+ETAPA 1 — Carga
+
+Seleccionar
+Arrastrar
+Validar
+Leer
+Mostrar
+Eliminar
+
+↓
+
+ETAPA 2 — Conversión
+
+Canvas
+JPG
+PNG
+WebP
+Transparencia
+Fondo JPG
+Verificación
+
+↓
+
+ETAPA 3 — Compresión
+
+Objetivo KB
+Calidad
+Búsqueda binaria
+Mejor resultado
+Límite de iteraciones
+
+↓
+
+ETAPA 4 — Redimensionamiento + lotes
+
+Dimensiones
+Proporción
+Múltiples imágenes
+Progreso
+Estados
+
+↓
+
+ETAPA 5 — Resultados y descarga
+
+Comparación
+Estadísticas
+Nombres
+Descarga individual
+ZIP
